@@ -1,4 +1,5 @@
 from typing import Union, List, Dict
+from src.insights.jobs import read
 
 
 def get_max_salary(path: str) -> int:
@@ -16,7 +17,14 @@ def get_max_salary(path: str) -> int:
     int
         The maximum salary paid out of all job opportunities
     """
-    raise NotImplementedError
+    data = read(path)
+    salary_all = set()
+    for job in data:
+        if job["max_salary"] != "" and job["max_salary"] != "invalid":
+            if job["max_salary"].isnumeric():
+                salary_all.add(int(job["max_salary"]))
+    max_value = max(salary_all)
+    return max_value
 
 
 def get_min_salary(path: str) -> int:
@@ -34,7 +42,14 @@ def get_min_salary(path: str) -> int:
     int
         The minimum salary paid out of all job opportunities
     """
-    raise NotImplementedError
+    data = read(path)
+    salary_all = set()
+    for job in data:
+        if job["min_salary"] != "" and job["min_salary"] != "invalid":
+            if job["min_salary"].isnumeric():
+                salary_all.add(int(job["min_salary"]))
+    min_value = min(salary_all)
+    return min_value
 
 
 def matches_salary_range(job: Dict, salary: Union[int, str]) -> bool:
@@ -60,7 +75,16 @@ def matches_salary_range(job: Dict, salary: Union[int, str]) -> bool:
         If `job["min_salary"]` is greather than `job["max_salary"]`
         If `salary` isn't a valid integer
     """
-    raise NotImplementedError
+    try:
+        min_salary = job["min_salary"]
+        max_salar = job["max_salary"]
+
+        if int(min_salary) > int(max_salar):
+            raise ValueError
+        return int(salary) >= int(min_salary) and int(salary) <= int(max_salar)
+
+    except (KeyError, ValueError, TypeError):
+        raise ValueError
 
 
 def filter_by_salary_range(
@@ -81,4 +105,14 @@ def filter_by_salary_range(
     list
         Jobs whose salary range contains `salary`
     """
-    raise NotImplementedError
+    job_list = []
+
+    for job in jobs:
+        try:
+            result = matches_salary_range(job, salary)
+            if result:
+                job_list.append(job)
+        except ValueError:
+            pass
+
+    return job_list
